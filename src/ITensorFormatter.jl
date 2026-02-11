@@ -1,7 +1,7 @@
 module ITensorFormatter
 
-using JuliaSyntax: JuliaSyntax, @K_str, kind, children, parseall, SyntaxNode, span
 using JuliaFormatter
+using JuliaSyntax: @K_str, JuliaSyntax, SyntaxNode, children, kind, parseall, span
 using Runic
 
 function is_using_or_import(x)
