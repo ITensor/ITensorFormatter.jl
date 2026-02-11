@@ -22,15 +22,6 @@ function find_using_or_import(x)
     end
 end
 
-function find_first_using_or_import_statement(jst)
-    for x in children(jst)
-        if is_using_or_import(x)
-            return x
-        end
-    end
-    return nothing
-end
-
 char_range(x) = x.position:(x.position + span(x))
 
 function organize_import_file(f)
