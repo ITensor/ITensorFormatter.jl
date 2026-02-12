@@ -2,10 +2,7 @@ using ITensorFormatter: ITensorFormatter
 using JuliaSyntax: SyntaxNode, parseall
 using Test: @test, @testset
 
-function organize(s)
-    jst = parseall(SyntaxNode, s)
-    return ITensorFormatter.organize_import_blocks(jst)
-end
+organize(s) = ITensorFormatter.organize_import_blocks_string(s)
 
 @testset "ITensorFormatter" begin
     @testset "no imports" begin

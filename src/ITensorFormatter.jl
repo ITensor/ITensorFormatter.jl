@@ -21,8 +21,8 @@ function find_using_or_import(x)
         return nothing
     else
         for child in children(x)
-            x = find_using_or_import(child)
-            isnothing(x) || return x
+            result = find_using_or_import(child)
+            isnothing(result) || return result
         end
         return nothing
     end
@@ -30,10 +30,11 @@ end
 
 char_range(x) = x.position:(x.position + span(x) - 1)
 
-function organize_import_file(f)
-    jst = parseall(SyntaxNode, read(f, String))
+function organize_import_blocks_string(s)
+    jst = parseall(SyntaxNode, s)
     return organize_import_blocks(jst)
 end
+organize_import_blocks_file(f) = organize_import_blocks_string(read(f, String))
 
 # Sort symbols, but keep the module self-reference first if present
 function sort_with_self_first(syms, self)
@@ -224,7 +225,7 @@ function main(argv)
     end
     isempty(inputfiles) && return 0
     for inputfile in inputfiles
-        content = organize_import_file(inputfile)
+        content = organize_import_blocks_file(inputfile)
         write(inputfile, content)
     end
     pushfirst!(inputfiles, "--inplace")
