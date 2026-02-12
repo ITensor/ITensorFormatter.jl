@@ -38,7 +38,7 @@ const JULIAFORMATTER_OPTIONS = (
     indent_submodule = true,
     separate_kwargs_with_semicolon = true,
     surround_whereop_typeparameters = true,
-    disallow_single_arg_nesting = true,
+    disallow_single_arg_nesting = false,
     normalize_line_endings = "unix",
     # Line-wrapping-related options
     trailing_comma = true,
