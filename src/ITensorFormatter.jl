@@ -21,8 +21,8 @@ function find_using_or_import(x)
         return nothing
     else
         for child in children(x)
-            x = find_using_or_import(child)
-            isnothing(x) || return x
+            result = find_using_or_import(child)
+            isnothing(result) || return result
         end
         return nothing
     end
@@ -30,40 +30,28 @@ end
 
 char_range(x) = x.position:(x.position + span(x) - 1)
 
-function organize_import_file(f)
-    jst = parseall(SyntaxNode, read(f, String))
-    return organize_import_block(jst)
+function organize_import_blocks_string(s)
+    jst = parseall(SyntaxNode, s)
+    return organize_import_blocks(jst)
+end
+organize_import_blocks_file(f) = organize_import_blocks_string(read(f, String))
+
+# Sort symbols, but keep the module self-reference first if present
+function sort_with_self_first(syms, self)
+    self′ = pop!(syms, self, nothing)
+    sorted = sort!(collect(syms))
+    if self′ !== nothing
+        pushfirst!(sorted, self)
+    end
+    return sorted
 end
 
-function organize_import_block(input)
-    # Collect all sibling blocks that are also using/import expressions
-
-    x = find_using_or_import(input)
-    isnothing(x) && return JuliaSyntax.sourcetext(input)
-
-    siblings = []
-
-    child_nodes = children(x)
-    first_ind = findfirst(is_using_or_import, child_nodes)
-
-    for ind in first_ind:length(child_nodes)
-        if is_using_or_import(child_nodes[ind])
-            push!(siblings, child_nodes[ind])
-        else
-            break
-        end
-    end
-
-    src = JuliaSyntax.sourcetext(input)
-
-    # Collect all modules and symbols
+# Organize a single block of adjacent import/using statements
+function organize_import_block(siblings, node_text)
     using_mods = Set{String}()
     using_syms = Dict{String, Set{String}}()
     import_mods = Set{String}()
     import_syms = Dict{String, Set{String}}()
-
-    # Extract the source text of a node, trimming whitespace
-    node_text(x) = strip(src[char_range(x)])
 
     for s in siblings
         isusing = kind(s) === K"using"
@@ -86,21 +74,6 @@ function organize_import_block(input)
         end
     end
 
-    # Rejoin and sort
-    # TODO: Currently regular string sorting is used, which roughly will correspond to
-    #       BlueStyle (modules, types, ..., functions) since usually CamelCase is used for
-    #       modules, types, etc, but possibly this can be improved by using information
-    #       available from SymbolServer
-    # Sort symbols, but keep the module self-reference first if present
-    function sort_with_self_first(syms, self)
-        self′ = pop!(syms, self, nothing)
-        sorted = sort!(collect(syms))
-        if self′ !== nothing
-            pushfirst!(sorted, self)
-        end
-        return sorted
-    end
-
     import_lines = String[]
     for m in import_mods
         push!(import_lines, "import " * m)
@@ -121,15 +94,91 @@ function organize_import_block(input)
     join(io, sort!(using_lines), "\n")
     str_to_fmt = String(take!(io))
 
-    # Line wrap the using/import statements only
-    formatted = JuliaFormatter.format_text(str_to_fmt; join_lines_based_on_source = true)
+    return JuliaFormatter.format_text(str_to_fmt; join_lines_based_on_source = true)
+end
 
-    first_pos = first(char_range(siblings[1]))
-    last_pos = last(char_range(siblings[end]))
+function organize_import_blocks(input)
+    src = JuliaSyntax.sourcetext(input)
+    x = find_using_or_import(input)
+    isnothing(x) && return src
 
-    content = src[1:(first_pos - 1)] * chomp(formatted) * src[(last_pos + 1):end]
+    child_nodes = children(x)
 
-    return content
+    # Find all groups of adjacent import/using statements
+    groups = Vector{Any}[]
+    i = 1
+    while i <= length(child_nodes)
+        if is_using_or_import(child_nodes[i])
+            group_start = i
+            while i <= length(child_nodes) && is_using_or_import(child_nodes[i])
+                i += 1
+            end
+            push!(groups, child_nodes[group_start:(i - 1)])
+        else
+            i += 1
+        end
+    end
+
+    # Extract the source text of a node, trimming whitespace
+    node_text(n) = strip(src[char_range(n)])
+
+    # Process each group from right to left to preserve positions
+    for siblings in reverse(groups)
+        formatted = organize_import_block(siblings, node_text)
+        first_pos = first(char_range(siblings[1]))
+        last_pos = last(char_range(siblings[end]))
+        src = src[1:(first_pos - 1)] * chomp(formatted) * src[(last_pos + 1):end]
+    end
+
+    return src
+end
+
+const ITENSORFORMATTER_VERSION = pkgversion(@__MODULE__)
+
+# Print a typical cli program help message
+function print_help()
+    io = stdout
+    printstyled(io, "NAME", bold = true)
+    println(io)
+    println(io, "       ITensorFormatter.main - format Julia source code")
+    println(io)
+    printstyled(io, "SYNOPSIS", bold = true)
+    println(io)
+    println(io, "       julia -m ITensorFormatter [<options>] <path>...")
+    println(io)
+    printstyled(io, "DESCRIPTION", bold = true)
+    println(io)
+    println(
+        io, """
+               `ITensorFormatter.main` (typically invoked as `julia -m ITensorFormatter`)
+               formats Julia source code using the ITensorFormatter.jl formatter.
+        """
+    )
+    printstyled(io, "OPTIONS", bold = true)
+    println(io)
+    println(
+        io, """
+               <path>...
+                   Input path(s) (files and/or directories) to process. For directories,
+                   all files (recursively) with the '*.jl' suffix are used as input files.
+
+               --help
+                   Print this message.
+
+               --version
+                   Print ITensorFormatter and julia version information.
+        """
+    )
+    return
+end
+
+function print_version()
+    print(stdout, "itfmt version ")
+    print(stdout, ITENSORFORMATTER_VERSION)
+    print(stdout, ", julia version ")
+    print(stdout, VERSION)
+    println(stdout)
+    return
 end
 
 """
@@ -137,27 +186,50 @@ end
 
 Format Julia source files. Primarily formats using Runic formatting, but additionally
 organizes using/import statements by merging adjacent blocks, sorting modules and symbols,
-and line-wrapping. Accepts file paths and directories as arguments. Options starting with
-`--` are forwarded to Runic, see the
-[Runic documentation](https://github.com/fredrikekre/Runic.jl) for more details.
+and line-wrapping. Accepts file paths and directories as arguments.
+
+# Examples
+```julia-repl
+julia> using ITensorFormatter: ITensorFormatter
+
+julia> ITensorFormatter.main(["."]);
+
+julia> ITensorFormatter.main(["file1.jl", "file2.jl"]);
+
+```
 """
 function main(argv)
-    inputfiles = String[]
-    x = filter(!startswith("--"), argv)
-    for x in argv
-        if startswith(x, "--")
-            # Ignore options for now, they are assumed to be for Runic.
-        elseif isdir(x)
-            Runic.scandir!(inputfiles, x)
-        else # isfile(x)
-            push!(inputfiles, x) # Assume it is a file for now
+    argv_options = filter(startswith("--"), argv)
+    if !isempty(argv_options)
+        if "--help" in argv_options
+            print_help()
+            return 0
+        elseif "--version" in argv_options
+            print_version()
+            return 0
+        else
+            return error("Options not supported: `$argv_options`.")
         end
     end
+    # `argv` doesn't have any options, so treat all arguments as file/directory paths.
+    isempty(argv) && return error("No input paths provided.")
+    inputfiles = String[]
+    for x in argv
+        if isdir(x)
+            Runic.scandir!(inputfiles, x)
+        elseif isfile(x)
+            push!(inputfiles, x) # Assume it is a file for now
+        else
+            error("Input path is not a file or directory: `$x`.")
+        end
+    end
+    isempty(inputfiles) && return 0
     for inputfile in inputfiles
-        content = organize_import_file(inputfile)
+        content = organize_import_blocks_file(inputfile)
         write(inputfile, content)
     end
-    Runic.main(argv)
+    pushfirst!(inputfiles, "--inplace")
+    Runic.main(inputfiles)
     return 0
 end
 
