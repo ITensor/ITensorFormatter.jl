@@ -18,24 +18,28 @@ const JULIAFORMATTER_OPTIONS = (
     indent = 4,
     margin = 92,
     always_for_in = true,
-    # Disable semantic transformations (Runic is authoritative)
-    always_use_return = false,
-    import_to_using = false,
-    pipe_to_function_call = false,
-    short_to_long_function_def = false,
-    long_to_short_function_def = false,
-    conditional_to_if = false,
+    for_in_replacement = "in",
+    # Semantic transformations consistent with Runic
+    always_use_return = true,
+    import_to_using = true,
+    pipe_to_function_call = true,
+    short_to_long_function_def = true,
+    long_to_short_function_def = true,
+    conditional_to_if = true,
     short_circuit_to_if = false,
-    # Disable whitespace changes (Runic is authoritative)
-    whitespace_typedefs = false,
-    whitespace_ops_in_indices = false,
+    # Whitespace options consistent with Runic
+    whitespace_typedefs = true,
+    whitespace_ops_in_indices = true,
     whitespace_in_kwargs = true,
-    # Disable annotation/structural changes
-    annotate_untyped_fields_with_any = false,
-    format_docstrings = false,
-    remove_extra_newlines = false,
-    indent_submodule = false,
-    separate_kwargs_with_semicolon = false,
+    # Annotation/structural changes
+    annotate_untyped_fields_with_any = true,
+    format_docstrings = true,
+    remove_extra_newlines = true,
+    indent_submodule = true,
+    separate_kwargs_with_semicolon = true,
+    surround_whereop_typeparameters = true,
+    disallow_single_arg_nesting = true,
+    normalize_line_endings = "unix",
     # Line-wrapping-related options
     trailing_comma = true,
     trailing_zero = true,
@@ -259,9 +263,14 @@ function main(argv)
         content = organize_import_blocks_file(inputfile)
         write(inputfile, content)
     end
-    # Pass 2: Line wrapping via JuliaFormatter
+    # Pass 2: Formatting via JuliaFormatter
     JuliaFormatter.format(inputfiles; JULIAFORMATTER_OPTIONS...)
-    # Pass 3: Canonicalize via Runic
+    # Pass 3: Re-organize imports (fix up any changes from JuliaFormatter, e.g. import_to_using)
+    for inputfile in inputfiles
+        content = organize_import_blocks_file(inputfile)
+        write(inputfile, content)
+    end
+    # Pass 4: Canonicalize via Runic
     Runic.main(["--inplace"; inputfiles])
     return 0
 end
