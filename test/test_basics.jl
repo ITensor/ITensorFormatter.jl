@@ -1,6 +1,7 @@
 using ITensorFormatter: ITensorFormatter
 using JuliaSyntax: SyntaxNode, parseall
-using Test: @test, @testset
+using Suppressor: @capture_out, @suppress
+using Test: @test, @test_throws, @testset
 
 organize(s) = ITensorFormatter.organize_import_blocks_string(s)
 
@@ -126,5 +127,66 @@ organize(s) = ITensorFormatter.organize_import_blocks_string(s)
         result = organize(input)
         @test result ==
             "using Baz: baz\nusing Foo: foo\nx = 1\nusing Alpha: a\nusing Zebra: a, z\n"
+    end
+end
+
+@testset "main" begin
+    @testset "--help" begin
+        output = @capture_out begin
+            ret = ITensorFormatter.main(["--help"])
+            @test ret == 0
+        end
+        @test contains(output, "ITensorFormatter")
+        @test contains(output, "SYNOPSIS")
+    end
+
+    @testset "--version" begin
+        output = @capture_out begin
+            ret = ITensorFormatter.main(["--version"])
+            @test ret == 0
+        end
+        @test contains(output, "itfmt version")
+        @test contains(output, string(pkgversion(ITensorFormatter)))
+    end
+
+    @testset "unsupported option" begin
+        @test_throws ErrorException ITensorFormatter.main(["--bad"])
+    end
+
+    @testset "no arguments" begin
+        @test_throws ErrorException ITensorFormatter.main(String[])
+    end
+
+    @testset "nonexistent path" begin
+        @test_throws ErrorException ITensorFormatter.main(["nonexistent_path_xyz"])
+    end
+
+    @testset "format a single file" begin
+        mktempdir() do dir
+            path = joinpath(dir, "test.jl")
+            write(path, "using Zebra: z\nusing Alpha: a\nx = 1\n")
+            @suppress ITensorFormatter.main([path])
+            result = read(path, String)
+            @test contains(result, "using Alpha: a")
+            @test contains(result, "using Zebra: z")
+            # Alpha should come before Zebra
+            @test findfirst("Alpha", result) < findfirst("Zebra", result)
+            # Non-import code preserved
+            @test contains(result, "x = 1")
+        end
+    end
+
+    @testset "format a directory" begin
+        mktempdir() do dir
+            path1 = joinpath(dir, "a.jl")
+            path2 = joinpath(dir, "b.jl")
+            write(path1, "using Zebra: z\nusing Alpha: a\n")
+            write(path2, "import Foo\nimport Bar: bar\n")
+            @suppress ITensorFormatter.main([dir])
+            result1 = read(path1, String)
+            result2 = read(path2, String)
+            @test findfirst("Alpha", result1) < findfirst("Zebra", result1)
+            @test findfirst("Bar", result2) < findfirst("Foo", result2)
+        end
     end
 end
