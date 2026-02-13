@@ -41,7 +41,7 @@ const JULIAFORMATTER_OPTIONS = (
     disallow_single_arg_nesting = false,
     normalize_line_endings = "unix",
     # Line-wrapping-related options
-    trailing_comma = true,
+    trailing_comma = false,
     trailing_zero = true,
     join_lines_based_on_source = true,
 )
