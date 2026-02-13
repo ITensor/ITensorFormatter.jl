@@ -7,8 +7,7 @@ repos:
     pass_filenames: true
     always_run: false
     types: [file]
-    files: \.(jl|[jq]?md)$
-    exclude: '^test/'
+    files: \.jl$
     language: "system"
 -   repo: meta
     hooks:
