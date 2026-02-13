@@ -42,8 +42,9 @@ const JULIAFORMATTER_OPTIONS = (
     normalize_line_endings = "unix",
     # Line-wrapping-related options
     trailing_comma = false,
-    trailing_zero = true,
     join_lines_based_on_source = true,
+    # Floating point formatting options
+    trailing_zero = true,
 )
 
 is_using_or_import(x) = kind(x) === K"using" || kind(x) === K"import"
