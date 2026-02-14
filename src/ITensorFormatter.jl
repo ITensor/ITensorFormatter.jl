@@ -69,19 +69,10 @@ end
 # This converts a node's byte range into a safe `UnitRange` of valid string indices
 # that covers the same byte extent, by walking with `nextind`.
 function node_char_range(n::SyntaxNode, src::AbstractString)
-    start = n.position
-    nspan = span(n)
-    nspan <= 0 && return start:start
-
-    endbyte = start + nspan - 1
-    endbyte = min(endbyte, ncodeunits(src))
-    i = start
-    last = start
-    while i <= endbyte
-        last = i
-        i = nextind(src, i)
-    end
-    return start:last
+    start = thisind(src, n.position)                    # defensive
+    stopb = min(n.position + span(n) - 1, ncodeunits(src))
+    span(n) <= 0 && return start:(start - 1)            # empty range
+    return start:thisind(src, stopb)
 end
 
 function organize_import_blocks_string(s::AbstractString)
