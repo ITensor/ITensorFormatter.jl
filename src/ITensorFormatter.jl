@@ -66,13 +66,14 @@ end
 # JuliaSyntax nodes report (position, span) in *bytes*.
 # Julia strings must be sliced using *valid string indices* (start bytes of UTF-8 chars).
 #
-# This converts a node's byte range into a safe `UnitRange` of valid string indices
-# that covers the same byte extent, by walking with `nextind`.
+# Convert a node's byte range into a safe `UnitRange` of valid string indices.
+# (O(1): fix endpoints with `thisind`.)
 function node_char_range(n::SyntaxNode, src::AbstractString)
-    start = thisind(src, n.position)                    # defensive
-    stopb = min(n.position + span(n) - 1, ncodeunits(src))
-    span(n) <= 0 && return start:(start - 1)            # empty range
-    return start:thisind(src, stopb)
+    startb = n.position
+    nspan = span(n)
+    nspan <= 0 && return startb:(startb - 1) # empty range
+    stopb = min(startb + nspan - 1, ncodeunits(src))
+    return thisind(src, startb):thisind(src, stopb)
 end
 
 function organize_import_blocks_string(s::AbstractString)
@@ -152,12 +153,11 @@ function organize_import_block(siblings::AbstractVector{<:SyntaxNode}, node_text
 end
 
 function organize_import_blocks(input::SyntaxNode)
-    src = JuliaSyntax.sourcetext(input)
+    # Keep a stable copy for slicing: node positions/spans refer to this text.
+    src0 = JuliaSyntax.sourcetext(input)
     x = find_using_or_import(input)
-    isnothing(x) && return src
-
+    isnothing(x) && return src0
     child_nodes = children(x)
-
     # Find all groups of adjacent import/using statements
     groups = Vector{SyntaxNode}[]
     i = 1
@@ -172,15 +172,17 @@ function organize_import_blocks(input::SyntaxNode)
             i += 1
         end
     end
-
-    # Extract the source text of a node, trimming whitespace (Unicode-safe)
-    node_text(n::SyntaxNode) = strip(src[node_char_range(n, src)])
-
+    # Extract the source text of a node, trimming whitespace (Unicode-safe).
+    # Always slice from src0 (stable offsets), not the rewritten `src`.
+    node_text(n::SyntaxNode) = strip(src0[node_char_range(n, src0)])
+    # Rewritten output source.
+    src = src0
     # Process each group from right to left to preserve positions
     for siblings in reverse(groups)
         formatted = organize_import_block(siblings, node_text)
-        first_pos = first(node_char_range(siblings[1], src))
-        last_pos = last(node_char_range(siblings[end], src))
+        # Compute splice bounds using src0 (node offsets), then splice into src.
+        first_pos = first(node_char_range(first(siblings), src0))
+        last_pos = last(node_char_range(last(siblings), src0))
         # Unicode-safe splice boundaries (never do ±1 on raw integer indices)
         before =
             first_pos == firstindex(src) ? "" :
@@ -189,7 +191,6 @@ function organize_import_blocks(input::SyntaxNode)
         after = after_start > lastindex(src) ? "" : src[after_start:end]
         src = before * chomp(formatted) * after
     end
-
     return src
 end
 
