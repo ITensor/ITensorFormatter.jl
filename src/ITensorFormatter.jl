@@ -71,14 +71,13 @@ function organize_import_blocks_string(s)
 end
 organize_import_blocks_file(f) = organize_import_blocks_string(read(f, String))
 
-# Sort symbols, but keep the module self-reference first if present
+# Sort symbols, but keep the module self-reference (bare and all aliases) first if present
 function sort_with_self_first(syms, self)
-    self′ = pop!(syms, self, nothing)
-    sorted = sort!(collect(syms))
-    if self′ !== nothing
-        pushfirst!(sorted, self)
-    end
-    return sorted
+    syms = unique(syms)
+    selfs = self in syms ? [self] : typeof(self)[]
+    self_aliases = sort!(filter(s -> startswith(s, self * " as "), syms))
+    rest = sort!(setdiff(syms, [selfs; self_aliases]))
+    return [selfs; self_aliases; rest]
 end
 
 # Organize a single block of adjacent import/using statements

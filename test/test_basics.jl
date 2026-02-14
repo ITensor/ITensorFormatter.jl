@@ -128,6 +128,24 @@ organize(s) = ITensorFormatter.organize_import_blocks_string(s)
         @test result ==
             "using Baz: baz\nusing Foo: foo\nx = 1\nusing Alpha: a\nusing Zebra: a, z\n"
     end
+
+    @testset "multiple self-imports and aliases" begin
+        # Bare self and aliases, plus others
+        result = organize("using Foo: bar, Foo as Q, Foo, Foo as P, baz, A")
+        @test result == "using Foo: Foo, Foo as P, Foo as Q, A, bar, baz"
+
+        # Only aliases, no bare self
+        result = organize("using Foo: Foo as Q, Foo as P, baz, A")
+        @test result == "using Foo: Foo as P, Foo as Q, A, baz"
+
+        # Only bare self
+        result = organize("using Foo: Foo, baz, A")
+        @test result == "using Foo: Foo, A, baz"
+
+        # Duplicates should be removed
+        result = organize("using Foo: Foo, Foo as P, Foo as P, Foo, A, A")
+        @test result == "using Foo: Foo, Foo as P, A"
+    end
 end
 
 @testset "main" begin
