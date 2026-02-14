@@ -146,6 +146,32 @@ organize(s) = ITensorFormatter.organize_import_blocks_string(s)
         result = organize("using Foo: Foo, Foo as P, Foo as P, Foo, A, A")
         @test result == "using Foo: Foo, Foo as P, A"
     end
+
+    @testset "unicode and non-ASCII symbols" begin
+        # Single unicode symbol
+        result = organize("using Foo: ⊗")
+        @test result == "using Foo: ⊗"
+
+        # Multiple unicode and ASCII symbols
+        result = organize("using Foo: ⊗, x, y, X")
+        @test result == "using Foo: X, x, y, ⊗"
+
+        # Multiple unicode symbols, ASCII symbols, and self imports
+        result = organize("using Foo: ⊗, Foo as B, x, ×, Foo, y, Foo as A, X")
+        @test result == "using Foo: Foo, Foo as A, Foo as B, X, x, y, ×, ⊗"
+
+        # Unicode self-reference
+        result = organize("using ⊗: ⊗, x, y")
+        @test result == "using ⊗: ⊗, x, y"
+
+        # Unicode self-reference with alias
+        result = organize("using ⊗: ⊗ as T, ⊗, x, y")
+        @test result == "using ⊗: ⊗, ⊗ as T, x, y"
+
+        # Unicode and ASCII, with alias
+        result = organize("using Foo: ⊗ as T, x, ⊗, y")
+        @test result == "using Foo: x, y, ⊗, ⊗ as T"
+    end
 end
 
 @testset "main" begin
