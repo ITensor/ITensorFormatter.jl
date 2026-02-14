@@ -128,6 +128,50 @@ organize(s) = ITensorFormatter.organize_import_blocks_string(s)
         @test result ==
             "using Baz: baz\nusing Foo: foo\nx = 1\nusing Alpha: a\nusing Zebra: a, z\n"
     end
+
+    @testset "multiple self-imports and aliases" begin
+        # Bare self and aliases, plus others
+        result = organize("using Foo: bar, Foo as Q, Foo, Foo as P, baz, A")
+        @test result == "using Foo: Foo, Foo as P, Foo as Q, A, bar, baz"
+
+        # Only aliases, no bare self
+        result = organize("using Foo: Foo as Q, Foo as P, baz, A")
+        @test result == "using Foo: Foo as P, Foo as Q, A, baz"
+
+        # Only bare self
+        result = organize("using Foo: Foo, baz, A")
+        @test result == "using Foo: Foo, A, baz"
+
+        # Duplicates should be removed
+        result = organize("using Foo: Foo, Foo as P, Foo as P, Foo, A, A")
+        @test result == "using Foo: Foo, Foo as P, A"
+    end
+
+    @testset "unicode and non-ASCII symbols" begin
+        # Single unicode symbol
+        result = organize("using Foo: ⊗")
+        @test result == "using Foo: ⊗"
+
+        # Multiple unicode and ASCII symbols
+        result = organize("using Foo: ⊗, x, y, X")
+        @test result == "using Foo: X, x, y, ⊗"
+
+        # Multiple unicode symbols, ASCII symbols, and self imports
+        result = organize("using Foo: ⊗, Foo as B, x, ×, Foo, y, Foo as A, X")
+        @test result == "using Foo: Foo, Foo as A, Foo as B, X, x, y, ×, ⊗"
+
+        # Unicode self-reference
+        result = organize("using ⊗: ⊗, x, y")
+        @test result == "using ⊗: ⊗, x, y"
+
+        # Unicode self-reference with alias
+        result = organize("using ⊗: ⊗ as T, ⊗, x, y")
+        @test result == "using ⊗: ⊗, ⊗ as T, x, y"
+
+        # Unicode and ASCII, with alias
+        result = organize("using Foo: ⊗ as T, x, ⊗, y")
+        @test result == "using Foo: x, y, ⊗, ⊗ as T"
+    end
 end
 
 @testset "main" begin
