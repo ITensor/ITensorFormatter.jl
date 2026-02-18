@@ -99,20 +99,21 @@ function print_version()
 end
 
 function process_args(argv)
+    format = true
     argv_options = filter(startswith("--"), argv)
     if !isempty(argv_options)
         if "--help" in argv_options
             print_help()
-            return String[]
+            return String[], !format
         elseif "--version" in argv_options
             print_version()
-            return String[]
+            return String[], !format
         else
             return error("Options not supported: `$argv_options`.")
         end
     end
     # `argv` doesn't have any options, so treat all arguments as file/directory paths.
-    return argv
+    return argv, format
 end
 
 """
@@ -134,7 +135,8 @@ julia> ITensorFormatter.main(["file1.jl", "file2.jl"]);
 ```
 """
 function main(argv)
-    paths = process_args(argv)
+    paths, format = process_args(argv)
+    !format && return 0
     isempty(paths) && return error("No input paths provided.")
     jlfiles = filterpaths(isjlfile, paths)
     yamlfiles = filterpaths(isyamlfile, paths)
