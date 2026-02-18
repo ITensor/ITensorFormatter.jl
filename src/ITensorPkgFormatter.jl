@@ -5,7 +5,7 @@ using ITensorFormatter: ITensorFormatter
 function main(argv)
     ITensorFormatter.main(argv)
     paths = filter(!startswith("--"), argv)
-    ITensorFormatter.generate_readme!(paths)
+    ITensorFormatter.generate_readmes!(paths)
     return nothing
 end
 

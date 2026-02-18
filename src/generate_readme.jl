@@ -18,7 +18,10 @@ function generate_readme!(path::AbstractString)
         error("Can't generate README: not an ITensor package directory: `$path`.")
     cd(joinpath(path, "docs")) do
         julia = Base.julia_cmd()
-        run(`$(julia) --project="." --startup-file=no make_readme.jl`)
+        cmd = `$(julia) --project=. --startup-file=no make_readme.jl`
+        # `setenv` is needed so that Julia properly see the local package environment
+        # (otherwise it can't seem to load packages).
+        run(setenv(cmd, "JULIA_LOAD_PATH" => ":"))
         return nothing
     end
     return nothing
