@@ -1,7 +1,7 @@
 using JuliaFormatter: JuliaFormatter
 using Runic: Runic
 
-isjlfile(f) = endswith(f, ".jl")
+isjlfile(path) = endswith(last(splitpath(path)), ".jl")
 
 # JuliaFormatter options chosen to be compatible with Runic.
 # JuliaFormatter handles line wrapping (which Runic doesn't do),

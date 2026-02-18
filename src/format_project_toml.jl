@@ -1,6 +1,6 @@
 using TOML: TOML
 
-isprojecttoml(f) = f == "Project.toml"
+isprojecttoml(path) = last(splitpath(path)) == "Project.toml"
 
 function format_project_tomls!(path::AbstractString)
     if isfile(path)

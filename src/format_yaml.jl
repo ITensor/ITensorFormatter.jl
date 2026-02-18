@@ -1,7 +1,10 @@
 using OrderedCollections: OrderedDict
 using YAML: YAML
 
-isyamlfile(f) = endswith(f, ".yaml") || endswith(f, ".yml")
+function isyamlfile(path)
+    file = last(splitpath(path))
+    return endswith(file, ".yaml") || endswith(file, ".yml")
+end
 
 function format_yamls!(path::AbstractString)
     if isfile(path)
