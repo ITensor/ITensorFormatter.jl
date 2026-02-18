@@ -45,7 +45,7 @@ function format_juliaformatter!(paths)
 end
 
 function format_runic!(paths::AbstractVector{<:AbstractString})
-    Runic.main(["--inplace"; inputfiles = paths])
+    Runic.main(["--inplace"; paths])
     return nothing
 end
 format_runic!(path::AbstractString) = format_runic!([path])
