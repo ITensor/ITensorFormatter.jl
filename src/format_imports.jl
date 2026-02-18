@@ -1,10 +1,28 @@
 using JuliaSyntax: JuliaSyntax, @K_str, SyntaxNode, children, kind, parseall, span
 
-function format_imports!(inputfiles::AbstractVector{<:AbstractString})
-    for inputfile in inputfiles
-        content = organize_import_blocks_file(inputfile)
-        write(inputfile, content)
+function format_imports!(path::AbstractString)
+    if isfile(path)
+        format_imports_file!(path)
+        return nothing
     end
+    @assert isdir(path) "Expected a directory path, got: $path"
+    paths = filterdir(isjlfile, path)
+    format_imports!(paths)
+    return nothing
+end
+function format_imports!(paths::AbstractVector{<:AbstractString})
+    for path in paths
+        format_imports!(path)
+    end
+    return nothing
+end
+
+# Format the imports of the specified file.
+function format_imports_file!(path::AbstractString)
+    @assert isfile(path) "Expected a file path, got: $path"
+    isjlfile(path) || return nothing
+    content = organize_import_blocks_file(path)
+    write(path, content)
     return nothing
 end
 

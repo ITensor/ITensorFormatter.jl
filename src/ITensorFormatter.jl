@@ -6,7 +6,10 @@ if VERSION >= v"1.11.0-DEV.469"
     end
 end
 
-include("organize_imports.jl")
+include("utils.jl")
+include("format_imports.jl")
+include("format_yaml.jl")
+include("format_project_toml.jl")
 include("main.jl")
 
 end

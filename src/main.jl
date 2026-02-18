@@ -1,6 +1,8 @@
 using JuliaFormatter: JuliaFormatter
 using Runic: Runic
 
+isjlfile(f) = endswith(f, ".jl")
+
 # JuliaFormatter options chosen to be compatible with Runic.
 # JuliaFormatter handles line wrapping (which Runic doesn't do),
 # then Runic runs last to canonicalize everything else.
@@ -37,15 +39,16 @@ const JULIAFORMATTER_OPTIONS = (
     # Floating point formatting options
     trailing_zero = true,
 )
-function format_juliaformatter!(inputfiles::AbstractVector{<:AbstractString})
-    JuliaFormatter.format(inputfiles; JULIAFORMATTER_OPTIONS...)
+function format_juliaformatter!(paths)
+    JuliaFormatter.format(paths; JULIAFORMATTER_OPTIONS...)
     return nothing
 end
 
-function format_runic!(inputfiles::AbstractVector{<:AbstractString})
-    Runic.main(["--inplace"; inputfiles])
+function format_runic!(paths::AbstractVector{<:AbstractString})
+    Runic.main(["--inplace"; inputfiles = paths])
     return nothing
 end
+format_runic!(path::AbstractString) = format_runic!([path])
 
 const ITENSORFORMATTER_VERSION = pkgversion(@__MODULE__)
 
@@ -127,16 +130,10 @@ function main(argv)
         end
     end
     # `argv` doesn't have any options, so treat all arguments as file/directory paths.
-    isempty(argv) && return error("No input paths provided.")
-    inputfiles = String[]
-    for x in argv
-        if isdir(x)
-            Runic.scandir!(inputfiles, x)
-        elseif isfile(x)
-            push!(inputfiles, x) # Assume it is a file for now
-        else
-            error("Input path is not a file or directory: `$x`.")
-        end
+    paths = argv
+    isempty(paths) && return error("No input paths provided.")
+    inputfiles = filterpaths(paths) do file
+        return isjlfile(file) || isyamlfile(file) || isprojecttoml(file)
     end
     isempty(inputfiles) && return 0
     # Pass 1: Organize import/using blocks
@@ -150,6 +147,8 @@ function main(argv)
     format_juliaformatter!(inputfiles)
     # Pass 5: Canonicalize via Runic
     format_runic!(inputfiles)
+    format_yamls!(inputfiles)
+    format_project_tomls!(inputfiles)
     return 0
 end
 
