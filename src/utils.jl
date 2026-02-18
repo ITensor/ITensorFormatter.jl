@@ -12,7 +12,7 @@ function filterpaths!(f, files, paths; skipdirs = [".git"])
         if isdir(path)
             filterdir!(f, files, path; skipdirs)
         elseif isfile(path)
-            push!(files, path)
+            tryf(f, path, false) && push!(files, path)
         else
             error("Input path is not a file or directory: `$path`.")
         end
