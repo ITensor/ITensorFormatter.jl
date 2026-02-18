@@ -28,10 +28,16 @@ function format_project_toml!(path::AbstractString)
 end
 
 function sort_project_toml!(path::AbstractString)
-    top_key_order = ["name", "uuid", "version", "authors"]
+    # See the ordering convention used by Pkg.jl here:
+    # https://github.com/JuliaLang/Pkg.jl/blob/adf516995ccde6190023640f95967fc1cbfff59e/src/project.jl#L327
+    # const _project_key_order = ["name", "uuid", "keywords", "license", "desc", "version",
+    # "readonly", "workspace", "deps", "weakdeps", "sources", "extensions", "compat"]
+    top_key_order = [
+        "name", "uuid", "keywords", "license", "desc", "version", "readonly", "authors",
+    ]
     table_order = [
-        "workspace", "deps", "weakdeps", "extensions", "compat", "apps", "extras",
-        "targets",
+        "workspace", "deps", "weakdeps", "sources", "extensions", "compat", "apps",
+        "extras", "targets",
     ]
     is_table(x) = x isa AbstractDict
     raw = read(path, String)

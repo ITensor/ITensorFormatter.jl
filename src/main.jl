@@ -132,23 +132,24 @@ function main(argv)
     # `argv` doesn't have any options, so treat all arguments as file/directory paths.
     paths = argv
     isempty(paths) && return error("No input paths provided.")
-    inputfiles = filterpaths(paths) do file
-        return isjlfile(file) || isyamlfile(file) || isprojecttoml(file)
-    end
-    isempty(inputfiles) && return 0
+    jlfiles = filterpaths(isjlfile, paths)
+    yamlfiles = filterpaths(isyamlfile, paths)
+    projectomls = filterpaths(isprojecttoml, paths)
     # Pass 1: Organize import/using blocks
-    format_imports!(inputfiles)
+    format_imports!(jlfiles)
     # Pass 2: Format via JuliaFormatter
-    format_juliaformatter!(inputfiles)
+    format_juliaformatter!(jlfiles)
     # Pass 3: Re-organize imports again (fix up any changes from JuliaFormatter, e.g.
     # import_to_using)
-    format_imports!(inputfiles)
+    format_imports!(jlfiles)
     # Pass 4: Format via JuliaFormatter again to fix import line wrapping
-    format_juliaformatter!(inputfiles)
+    format_juliaformatter!(jlfiles)
     # Pass 5: Canonicalize via Runic
-    format_runic!(inputfiles)
-    format_yamls!(inputfiles)
-    format_project_tomls!(inputfiles)
+    format_runic!(jlfiles)
+    # Pass 6: Format YAML files
+    format_yamls!(yamlfiles)
+    # Pass 7: Format Project.toml files
+    format_project_tomls!(projectomls)
     return 0
 end
 
