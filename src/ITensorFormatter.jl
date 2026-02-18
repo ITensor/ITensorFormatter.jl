@@ -12,5 +12,6 @@ include("format_yaml.jl")
 include("format_project_toml.jl")
 include("main.jl")
 include("generate_readme.jl")
+include("ITensorPkgFormatter.jl")
 
 end
