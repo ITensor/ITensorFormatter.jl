@@ -21,8 +21,8 @@ function generate_readme!(path::AbstractString)
         julia = Base.julia_cmd()
         code = """
         using Pkg: Pkg
-        Pkg.instantiate()
-        error()
+        # Install packages needed for "make_readme.jl".
+        Pkg.instantiate(; io = devnull)
         include("make_readme.jl")
         """
         cmd = `$(julia) --project=. --startup-file=no -e "$(code)"`
