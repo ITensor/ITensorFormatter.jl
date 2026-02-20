@@ -26,7 +26,10 @@ function generate_readme!(path::AbstractString)
         include("make_readme.jl")
         """
         cmd = `$(julia) --project=. --startup-file=no -e "$(code)"`
-        run(setenv(cmd, "JULIA_LOAD_PATH" => "@:@stdlib"))
+        cmd = setenv(
+            cmd, "JULIA_LOAD_PATH" => "@:@stdlib", "JULIA_PKG_USE_CLI_GIT" => "true"
+        )
+        run(cmd)
         return nothing
     end
     return nothing
