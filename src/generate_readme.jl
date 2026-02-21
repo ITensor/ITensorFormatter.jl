@@ -1,3 +1,5 @@
+using Literate: Literate
+
 function isitensorpkg(path::AbstractString)
     return isdir(path) &&
         isfile(joinpath(path, "Project.toml")) &&
@@ -21,18 +23,7 @@ function generate_readme!(path::AbstractString)
     end
     try
         cd(joinpath(path, "docs")) do
-            julia = Base.julia_cmd()
-            code = """
-            using Pkg: Pkg
-            # Install packages needed for "make_readme.jl".
-            Pkg.instantiate(; io = devnull)
             include("make_readme.jl")
-            """
-            cmd = `$(julia) --project=. --startup-file=no -e "$(code)"`
-            cmd = setenv(
-                cmd, "JULIA_LOAD_PATH" => "@:@stdlib", "JULIA_PKG_USE_CLI_GIT" => "true"
-            )
-            run(cmd)
             return nothing
         end
     catch e
