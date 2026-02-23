@@ -4,7 +4,6 @@ function isitensorpkg(path::AbstractString)
     return isdir(path) &&
         isfile(joinpath(path, "Project.toml")) &&
         isdir(joinpath(path, "src")) &&
-        isdir(joinpath(path, "test")) &&
         isdir(joinpath(path, "docs")) &&
         isfile(joinpath(path, "docs", "make_readme.jl"))
 end

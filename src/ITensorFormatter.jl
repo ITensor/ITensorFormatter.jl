@@ -13,5 +13,6 @@ include("format_project_toml.jl")
 include("main.jl")
 include("generate_readme.jl")
 include("ITensorPkgFormatter.jl")
+include("precompile_workload.jl")
 
 end
