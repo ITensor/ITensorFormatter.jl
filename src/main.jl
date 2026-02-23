@@ -14,7 +14,10 @@ const JULIAFORMATTER_OPTIONS = (
     for_in_replacement = "in",
     # Semantic transformations consistent with Runic
     always_use_return = true,
-    import_to_using = true,
+    # Ideally we would use `import_to_using = true`, however that changes the import
+    # formatting, which requires reformatting imports again which is expensive without
+    # a better solution besides running JuliaFormatter twice.
+    import_to_using = false,
     pipe_to_function_call = true,
     short_to_long_function_def = true,
     long_to_short_function_def = false,
@@ -145,17 +148,13 @@ function main(argv)
     format_imports!(jlfiles)
     # Pass 2: Format via JuliaFormatter
     format_juliaformatter!(jlfiles)
-    # Pass 3: Re-organize imports again (fix up any changes from JuliaFormatter, e.g.
-    # import_to_using)
-    format_imports!(jlfiles)
-    # Pass 4: Format via JuliaFormatter again to fix import line wrapping
-    format_juliaformatter!(jlfiles)
-    # Pass 5: Canonicalize via Runic
+    # Pass 3: Canonicalize via Runic
     format_runic!(jlfiles)
-    # Pass 6: Format YAML files
-    format_yamls!(yamlfiles)
-    # Pass 7: Format Project.toml files
+    # Pass 4: Format Project.toml files
     format_project_tomls!(projectomls)
+    # Pass 5: Format YAML files
+    ## This is disabled right now because it is too slow.
+    ## format_yamls!(yamlfiles)
     return 0
 end
 
