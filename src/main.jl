@@ -87,6 +87,9 @@ function print_help()
 
                --version
                    Print ITensorFormatter and julia version information.
+
+               --yaml
+                   Also format YAML files (*.yml, *.yaml). Disabled by default.
         """
     )
     return
@@ -103,20 +106,23 @@ end
 
 function process_args(argv)
     format = true
+    format_yaml = false
     argv_options = filter(startswith("--"), argv)
-    if !isempty(argv_options)
-        if "--help" in argv_options
-            print_help()
-            return String[], !format
-        elseif "--version" in argv_options
-            print_version()
-            return String[], !format
-        else
-            return error("Options not supported: `$argv_options`.")
-        end
+
+    if "--help" in argv_options
+        print_help()
+        return (; paths = String[], format = false, format_yaml = false)
+    elseif "--version" in argv_options
+        print_version()
+        return (; paths = String[], format = false, format_yaml = false)
     end
-    # `argv` doesn't have any options, so treat all arguments as file/directory paths.
-    return argv, format
+
+    format_yaml = "--yaml" ∈ argv_options
+    unknown = setdiff(argv_options, ["--yaml"])
+    !isempty(unknown) && error("Options not supported: `$unknown`.")
+
+    paths = filter(x -> !startswith(x, "--"), argv)
+    return (; paths, format, format_yaml)
 end
 
 """
@@ -138,11 +144,11 @@ julia> ITensorFormatter.main(["file1.jl", "file2.jl"]);
 ```
 """
 function main(argv)
-    paths, format = process_args(argv)
+    (; paths, format, format_yaml) = process_args(argv)
     !format && return 0
     isempty(paths) && return error("No input paths provided.")
     jlfiles = filterpaths(isjlfile, paths)
-    yamlfiles = filterpaths(isyamlfile, paths)
+    yamlfiles = format_yaml ? filterpaths(isyamlfile, paths) : String[]
     projectomls = filterpaths(isprojecttoml, paths)
     # Pass 1: Organize import/using blocks
     format_imports!(jlfiles)
@@ -152,9 +158,8 @@ function main(argv)
     format_runic!(jlfiles)
     # Pass 4: Format Project.toml files
     format_project_tomls!(projectomls)
-    # Pass 5: Format YAML files
-    ## This is disabled right now because it is too slow.
-    ## format_yamls!(yamlfiles)
+    # Pass 5: Format YAML files (optional)
+    format_yaml && format_yamls!(yamlfiles)
     return 0
 end
 
