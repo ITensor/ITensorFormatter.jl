@@ -32,8 +32,11 @@ using PrecompileTools: @compile_workload, @setup_workload
         )
 
         @compile_workload begin
+            # Ideally we might use `ITensorPkgFormatter.main([tmp])` to include
+            # precompilation of README generation, but some of that code seems to be
+            # problematic for precompilation because of some usage of `eval`, maybe
+            # in `include`.
             main([tmp])
-            # ITensorPkgFormatter.main([tmp])
         end
     finally
         rm(tmp; recursive = true, force = true)

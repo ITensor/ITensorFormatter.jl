@@ -22,7 +22,7 @@ function generate_readme!(path::AbstractString)
     end
     try
         cd(joinpath(path, "docs")) do
-            include("make_readme.jl")
+            include(joinpath(pwd(), "make_readme.jl"))
             return nothing
         end
     catch e
