@@ -104,7 +104,14 @@ function print_help(io::IO = stdout)
     return nothing
 end
 
-help_string() = sprint(print_help)
+# One shared generator for the plain-text help
+function help_text()
+    # ensure no ANSI styling sneaks into docstring text
+    return sprint(io -> print_help(IOContext(io, :color => false)))
+end
+
+# Docstring-friendly wrapper
+help_markdown() = "```text\n" * help_text() * "\n```"
 
 function print_version()
     print(stdout, "itfmt version ")
@@ -137,7 +144,7 @@ function process_args(argv)
 end
 
 """
-$(help_string())
+$(help_markdown())
 """
 function main(argv)
     (; paths, format, format_yaml) = process_args(argv)

@@ -4,7 +4,7 @@ using ITensorFormatter: ITensorFormatter
 using Logging: Logging
 
 """
-$(ITensorFormatter.help_string())
+$(ITensorFormatter.help_markdown())
 """
 function main(argv)
     ITensorFormatter.main(argv)

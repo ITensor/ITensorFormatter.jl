@@ -1,5 +1,5 @@
 # Reference
 
 ```@autodocs
-Modules = [ITensorFormatter]
+Modules = [ITensorFormatter, ITensorFormatter.ITensorPkgFormatter]
 ```
