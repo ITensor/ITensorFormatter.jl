@@ -1,5 +1,6 @@
 module ITensorFormatter
 
+export ITensorPkgFormatter
 if VERSION >= v"1.11.0-DEV.469"
     let str = "public main"
         eval(Meta.parse(str))
