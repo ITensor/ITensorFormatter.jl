@@ -4,7 +4,6 @@ function isitensorpkg(path::AbstractString)
     return isdir(path) &&
         isfile(joinpath(path, "Project.toml")) &&
         isdir(joinpath(path, "src")) &&
-        isdir(joinpath(path, "test")) &&
         isdir(joinpath(path, "docs")) &&
         isfile(joinpath(path, "docs", "make_readme.jl"))
 end
@@ -23,7 +22,7 @@ function generate_readme!(path::AbstractString)
     end
     try
         cd(joinpath(path, "docs")) do
-            include("make_readme.jl")
+            include(joinpath(pwd(), "make_readme.jl"))
             return nothing
         end
     catch e

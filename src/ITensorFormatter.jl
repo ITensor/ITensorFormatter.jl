@@ -1,7 +1,7 @@
 module ITensorFormatter
 
 if VERSION >= v"1.11.0-DEV.469"
-    let str = "public main"
+    let str = "public ITensorPkgFormatter, main"
         eval(Meta.parse(str))
     end
 end
@@ -13,5 +13,6 @@ include("format_project_toml.jl")
 include("main.jl")
 include("generate_readme.jl")
 include("ITensorPkgFormatter.jl")
+include("precompile_workload.jl")
 
 end

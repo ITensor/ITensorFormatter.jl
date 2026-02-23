@@ -196,6 +196,21 @@ end
         @test_throws ErrorException ITensorFormatter.main(["--bad"])
     end
 
+    @testset "--yaml gates YAML parsing/formatting" begin
+        mktempdir() do dir
+            # Intentionally invalid YAML so we can detect whether YAML formatting ran.
+            ypath = joinpath(dir, "bad.yaml")
+            write(ypath, "a: [\n")
+
+            # Default: YAML formatting is off, so this should succeed.
+            ret = @suppress ITensorFormatter.main([dir])
+            @test ret == 0
+
+            # Opt-in: should attempt YAML parsing and throw.
+            @test_throws Exception ITensorFormatter.main(["--yaml", dir])
+        end
+    end
+
     @testset "no arguments" begin
         @test_throws ErrorException ITensorFormatter.main(String[])
     end
