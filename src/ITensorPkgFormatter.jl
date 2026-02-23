@@ -1,11 +1,14 @@
 module ITensorPkgFormatter
 
 using ITensorFormatter: ITensorFormatter
+using Logging: Logging
 
 function main(argv)
     ITensorFormatter.main(argv)
     paths = filter(!startswith("--"), argv)
-    ITensorFormatter.generate_readmes!(paths)
+    Logging.with_logger(Logging.NullLogger()) do
+        return ITensorFormatter.generate_readmes!(paths)
+    end
     return nothing
 end
 
