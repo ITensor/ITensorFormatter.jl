@@ -25,6 +25,9 @@ TOML = "1.0.3"
 YAML = "0.4.16"
 julia = "1.10"
 
-[apps]
-itfmt = { julia_flags = ["--compile=min", "--optimize=0"] }
-itpkgfmt = { submodule = "ITensorPkgFormatter", julia_flags = ["--compile=min", "--optimize=0"] }
+[apps.itfmt]
+julia_flags = ["--compile=min", "--optimize=0"]
+
+[apps.itpkgfmt]
+julia_flags = ["--compile=min", "--optimize=0"]
+submodule = "ITensorPkgFormatter"
