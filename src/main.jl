@@ -61,36 +61,41 @@ function print_help()
     printstyled(io, "NAME"; bold = true)
     println(io)
     println(io, "       ITensorFormatter.main - format Julia source code")
+    println(
+        io,
+        "       ITensorPkgFormatter.main - format ITensor Julia packages and generate READMEs"
+    )
     println(io)
     printstyled(io, "SYNOPSIS"; bold = true)
     println(io)
     println(io, "       julia -m ITensorFormatter [<options>] <path>...")
+    println(io, "       julia -m ITensorPkgFormatter [<options>] <path>...")
     println(io)
     printstyled(io, "DESCRIPTION"; bold = true)
     println(io)
     println(
-        io, """
-               `ITensorFormatter.main` (typically invoked as `julia -m ITensorFormatter`)
-               formats Julia source code using the ITensorFormatter.jl formatter.
+        io,
         """
+        `ITensorFormatter.main` (typically invoked as `julia -m ITensorFormatter` or `itfmt`)\n\
+        formats Julia source code, Project.toml, and YAML files using the ITensorFormatter.jl formatter.\n\
+        \n\
+        `ITensorPkgFormatter.main` (typically invoked as `julia -m ITensorPkgFormatter` or `itpkgfmt`)\n\
+        performs all formatting as above, and additionally generates README documentation for each provided ITensor package directory.\n        """
     )
     printstyled(io, "OPTIONS"; bold = true)
     println(io)
     println(
-        io, """
-               <path>...
-                   Input path(s) (files and/or directories) to process. For directories,
-                   all files (recursively) with the '*.jl' suffix are used as input files.
-
-               --help
-                   Print this message.
-
-               --version
-                   Print ITensorFormatter and julia version information.
-
-               --yaml
-                   Also format YAML files (*.yml, *.yaml). Disabled by default.
+        io,
         """
+        <path>...\n\
+        Input path(s) (files and/or directories) to process. For directories,\n\
+        all files (recursively) with the '*.jl' suffix are used as input files.\n\
+        --help\n\
+        Print this message.\n\
+        --version\n\
+        Print ITensorFormatter and julia version information.\n\
+        --yaml\n\
+        Also format YAML files (*.yml, *.yaml). Disabled by default.\n        """
     )
     return
 end
