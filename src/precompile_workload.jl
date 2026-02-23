@@ -16,26 +16,10 @@ using PrecompileTools: @compile_workload, @setup_workload
             "name = \"Example\"\nuuid = \"00000000-0000-0000-0000-000000000000\"\nversion = \"0.1.0\"\n"
         )
 
-        # Copy the package's real docs/make_readme.jl into tmp/docs/
-        pkgroot = pkgdir(@__MODULE__)  # ITensorFormatter package root
-        cp(
-            joinpath(pkgroot, "docs", "make_readme.jl"),
-            joinpath(tmp, "docs", "make_readme.jl");
-            force = true
-        )
-
-        # Provide tmp/examples/README.jl for Literate to convert -> tmp/README.md
-        cp(
-            joinpath(pkgroot, "examples", "README.jl"),
-            joinpath(tmp, "examples", "README.jl");
-            force = true
-        )
-
         @compile_workload begin
             # Ideally we might use `ITensorPkgFormatter.main([tmp])` to include
-            # precompilation of README generation, but some of that code seems to be
-            # problematic for precompilation because of some usage of `eval`, maybe
-            # in `include`.
+            # precompilation of README generation, however it seems tricky to get that
+            # working because of the file generation involved in that workflow.
             main([tmp])
         end
     finally
