@@ -56,8 +56,7 @@ format_runic!(path::AbstractString) = format_runic!([path])
 const ITENSORFORMATTER_VERSION = pkgversion(@__MODULE__)
 
 # Print a typical cli program help message
-function print_help()
-    io = stdout
+function print_help(io::IO = stdout)
     printstyled(io, "NAME"; bold = true)
     println(io)
     println(io, "       ITensorFormatter.main - format Julia source code")
@@ -76,11 +75,16 @@ function print_help()
     println(
         io,
         """
-        `ITensorFormatter.main` (typically invoked as `julia -m ITensorFormatter` or `itfmt`)\n\
-        formats Julia source code, Project.toml, and YAML files using the ITensorFormatter.jl formatter.\n\
-        \n\
-        `ITensorPkgFormatter.main` (typically invoked as `julia -m ITensorPkgFormatter` or `itpkgfmt`)\n\
-        performs all formatting as above, and additionally generates README documentation for each provided ITensor package directory.\n        """
+        `ITensorFormatter.main` (typically invoked as `julia -m ITensorFormatter` or `itfmt`)
+        formats Julia source code, Project.toml, and optionally YAML files using the ITensorFormatter.jl formatter.
+        """
+    )
+    println(
+        io,
+        """
+        `ITensorPkgFormatter.main` (typically invoked as `julia -m ITensorPkgFormatter` or `itpkgfmt`)
+        performs all formatting as above, and additionally generates README documentation for each provided ITensor package directory.
+        """
     )
     printstyled(io, "OPTIONS"; bold = true)
     println(io)
@@ -97,8 +101,10 @@ function print_help()
         --yaml\n\
         Also format YAML files (*.yml, *.yaml). Disabled by default.\n        """
     )
-    return
+    return nothing
 end
+
+help_string() = sprint(print_help)
 
 function print_version()
     print(stdout, "itfmt version ")
@@ -131,22 +137,7 @@ function process_args(argv)
 end
 
 """
-    ITensorFormatter.main(argv)
-
-Format Julia source files. Primarily formats using Runic formatting, but additionally
-organizes using/import statements by merging adjacent blocks, sorting modules and symbols,
-and line-wrapping. Accepts file paths and directories as arguments.
-
-# Examples
-
-```julia-repl
-julia> using ITensorFormatter: ITensorFormatter
-
-julia> ITensorFormatter.main(["."]);
-
-julia> ITensorFormatter.main(["file1.jl", "file2.jl"]);
-
-```
+$(help_string())
 """
 function main(argv)
     (; paths, format, format_yaml) = process_args(argv)
