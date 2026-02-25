@@ -1,6 +1,6 @@
 name = "ITensorFormatter"
 uuid = "b6bf39f1-c9d3-4bad-aad8-593d802f65fd"
-version = "0.2.18"
+version = "0.2.19"
 authors = ["ITensor developers <support@itensor.org> and contributors"]
 
 [workspace]
@@ -31,8 +31,8 @@ julia = "1.10"
 
 
 [apps.itfmt]
-julia_flags = ["--compile=min", "--optimize=0"]
+julia_flags = ["--optimize=0"]
 
 [apps.itpkgfmt]
-julia_flags = ["--compile=min", "--optimize=0"]
+julia_flags = ["--optimize=0"]
 submodule = "ITensorPkgFormatter"
