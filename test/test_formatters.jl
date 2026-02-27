@@ -33,4 +33,20 @@ end
         @test occursin("Julia = \"1.10\"", result)
         @test occursin("Foo = \"1.2, 2\"", result)
     end
+
+    mktempdir() do dir
+        path = joinpath(dir, "Project.toml")
+        write(
+            path,
+            """
+            [deps]
+            Zebra = "00000000-0000-0000-0000-000000000001"
+            Alpha = "00000000-0000-0000-0000-000000000002"
+            """
+        )
+        format_project_tomls!(path)
+        result = read(path, String)
+        @test !startswith(result, "\n")
+        @test findfirst("Alpha", result) < findfirst("Zebra", result)
+    end
 end
