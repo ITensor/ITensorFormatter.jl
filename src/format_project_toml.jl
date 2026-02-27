@@ -22,8 +22,9 @@ end
 function format_project_toml!(path::AbstractString)
     @assert isfile(path) "Expected a file path, got: $path"
     isprojecttoml(path) || return nothing
-    # This calls `strip_compat_trailing_zeros!(path)` internally.
     strip_compat_trailing_zeros!(path)
+    # Always canonicalize ordering/formatting, even if compat did not change.
+    sort_project_toml!(path)
     return nothing
 end
 
@@ -64,8 +65,10 @@ function sort_project_toml!(path::AbstractString)
     for k in sort(collect(keys(data)))
         is_table(data[k]) && !(k in seen) && push!(table_keys, k)
     end
-    for k in table_keys
-        println(io)
+    for (i, k) in pairs(table_keys)
+        if i > 1 || !isempty(scalar_keys)
+            println(io)
+        end
         TOML.print(io, Dict(k => data[k]); sorted = true)
     end
     out = String(take!(io))
@@ -103,6 +106,5 @@ function strip_compat_trailing_zeros!(path::AbstractString)
     open(path, "w") do io
         return TOML.print(io, data)
     end
-    sort_project_toml!(path)
     return true
 end
