@@ -54,6 +54,9 @@ function sort_project_toml!(path::AbstractString)
     for k in scalar_keys
         TOML.print(io, Dict(k => data[k]))
     end
+    sections = String[]
+    scalar_out = strip(String(take!(io)), '\n')
+    !isempty(scalar_out) && push!(sections, scalar_out)
     table_keys = String[]
     seen = Set{String}()
     for k in table_order
@@ -65,13 +68,13 @@ function sort_project_toml!(path::AbstractString)
     for k in sort(collect(keys(data)))
         is_table(data[k]) && !(k in seen) && push!(table_keys, k)
     end
-    for (i, k) in pairs(table_keys)
-        if i > 1 || !isempty(scalar_keys)
-            println(io)
-        end
-        TOML.print(io, Dict(k => data[k]); sorted = true)
+    for k in table_keys
+        table_io = IOBuffer()
+        TOML.print(table_io, Dict(k => data[k]); sorted = true)
+        table_out = strip(String(take!(table_io)), '\n')
+        !isempty(table_out) && push!(sections, table_out)
     end
-    out = String(take!(io))
+    out = join(sections, "\n\n")
     endswith(out, "\n") || (out *= "\n")
     out == raw && return false
     write(path, out)

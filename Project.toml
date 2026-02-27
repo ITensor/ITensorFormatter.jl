@@ -29,7 +29,6 @@ TOML = "1.0.3"
 YAML = "0.4.16"
 julia = "1.10"
 
-
 [apps.itfmt]
 julia_flags = ["--optimize=0"]
 
