@@ -134,12 +134,7 @@ function _group(; args = ARGS, env = ENV)
     )
 end
 
-function runtests(;
-        testdir = @__DIR__,
-        runtests_file = "runtests.jl",
-        args = ARGS,
-        env = ENV
-    )
+function runtests(; testdir = @__DIR__, args = ARGS, env = ENV)
     group = _group(; args, env)
     @time begin
         for testgroup in filter(isdir, readdir(testdir; join = true))
@@ -153,7 +148,7 @@ function runtests(;
         end
 
         for file in filter(_istestfile, readdir(testdir; join = true))
-            (basename(file) == basename(runtests_file)) && continue
+            (basename(file) == "runtests.jl") && continue
             @eval @safetestset $(basename(file)) begin
                 include($file)
             end
