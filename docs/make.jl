@@ -5,7 +5,7 @@ DocMeta.setdocmeta!(
     ITensorFormatter, :DocTestSetup, :(using ITensorFormatter); recursive = true
 )
 
-include("make_index.jl")
+ITensorFormatter.make_index!(ITensorFormatter)
 
 makedocs(;
     modules = [ITensorFormatter],

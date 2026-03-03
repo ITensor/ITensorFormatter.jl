@@ -1,7 +1,7 @@
 module ITensorFormatter
 
 if VERSION >= v"1.11.0-DEV.469"
-    let str = "public ITensorPkgFormatter, main"
+    let str = "public ITensorPkgFormatter, generate_readme!, generate_readmes!, main, make_index!, make_readme!, runtests"
         eval(Meta.parse(str))
     end
 end
