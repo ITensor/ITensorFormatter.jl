@@ -1,6 +1,4 @@
 using Literate: Literate
-using SafeTestsets: @safetestset
-using Suppressor: @suppress
 
 _pkgroot(pkg::Module) = pkgdir(pkg)
 _pkgroot(pkg::AbstractString) = pkg
@@ -106,66 +104,6 @@ function generate_readme!(path::AbstractString)
         return nothing
     catch e
         @warn "Failed to generate README: $e"
-    end
-    return nothing
-end
-
-function _istestfile(path::AbstractString)
-    fn = basename(path)
-    return endswith(fn, ".jl") && startswith(basename(fn), "test_") &&
-        !contains(fn, "setup")
-end
-
-function _isexamplefile(path::AbstractString)
-    fn = basename(path)
-    return endswith(fn, ".jl") && !endswith(fn, "_notest.jl") && !contains(fn, "setup")
-end
-
-function _group(; args = ARGS, env = ENV)
-    pat = r"(?:--group=)(\w+)"
-    arg_id = findfirst(contains(pat), args)
-    return uppercase(
-        if isnothing(arg_id)
-            arg = get(env, "GROUP", "ALL")
-            arg == "" ? "ALL" : arg
-        else
-            only(match(pat, args[arg_id]).captures)
-        end
-    )
-end
-
-function runtests(; testdir = @__DIR__, args = ARGS, env = ENV)
-    group = _group(; args, env)
-    @time begin
-        for testgroup in filter(isdir, readdir(testdir; join = true))
-            if group == "ALL" || group == uppercase(basename(testgroup))
-                for filename in filter(_istestfile, readdir(testgroup; join = true))
-                    @eval @safetestset $(basename(filename)) begin
-                        include($filename)
-                    end
-                end
-            end
-        end
-
-        for file in filter(_istestfile, readdir(testdir; join = true))
-            (basename(file) == "runtests.jl") && continue
-            @eval @safetestset $(basename(file)) begin
-                include($file)
-            end
-        end
-
-        examplepath = joinpath(testdir, "..", "examples")
-        if isdir(examplepath)
-            for (root, _, files) in walkdir(examplepath)
-                contains(chopprefix(root, testdir), "setup") && continue
-                for file in filter(_isexamplefile, files)
-                    filename = joinpath(root, file)
-                    @eval @safetestset $file begin
-                        @suppress include($filename)
-                    end
-                end
-            end
-        end
     end
     return nothing
 end
