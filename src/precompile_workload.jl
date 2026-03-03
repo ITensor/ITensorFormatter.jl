@@ -10,6 +10,7 @@ using PrecompileTools: @compile_workload, @setup_workload
 
         # Minimal files so the formatter has something to do
         write(joinpath(tmp, "src", "Example.jl"), "module Example\nx=1\nend\n")
+        write(joinpath(tmp, "examples", "README.jl"), "# # Example\n")
         write(joinpath(tmp, "config.yaml"), "a: 1\nb: 2\n")
         write(
             joinpath(tmp, "Project.toml"),
