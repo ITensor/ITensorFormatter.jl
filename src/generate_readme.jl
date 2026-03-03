@@ -1,8 +1,5 @@
 using Literate: Literate
 
-_pkgroot(pkg::Module) = pkgdir(pkg)
-_pkgroot(pkg::AbstractString) = pkg
-
 const GFM_ALERT_HEADER_MAP = Dict(
     "> [!CAUTION]" => "!!! danger",
     "> [!IMPORTANT]" => "!!! important",
@@ -56,9 +53,9 @@ function _ccq_logo_index(content::AbstractString)
 end
 
 function make_readme!(
-        pkg::Union{Module, AbstractString};
-        inputfile = joinpath(_pkgroot(pkg), "examples", "README.jl"),
-        outputdir = _pkgroot(pkg),
+        pkgroot::AbstractString;
+        inputfile = joinpath(pkgroot, "examples", "README.jl"),
+        outputdir = pkgroot,
         flavor = Literate.CommonMarkFlavor(),
         name = "README",
         postprocess = _ccq_logo_readme
@@ -68,9 +65,9 @@ function make_readme!(
 end
 
 function make_index!(
-        pkg::Union{Module, AbstractString};
-        inputfile = joinpath(_pkgroot(pkg), "examples", "README.jl"),
-        outputdir = joinpath(_pkgroot(pkg), "docs", "src"),
+        pkgroot::AbstractString;
+        inputfile = joinpath(pkgroot, "examples", "README.jl"),
+        outputdir = joinpath(pkgroot, "docs", "src"),
         flavor = Literate.DocumenterFlavor(),
         name = "index",
         postprocess = _gfm_alerts ∘ _ccq_logo_index
