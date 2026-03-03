@@ -52,6 +52,11 @@ function _ccq_logo_index(content::AbstractString)
     return replace(content, "{CCQ_LOGO}" => include_ccq_logo)
 end
 
+"""
+    make_readme!(pkgroot::AbstractString; inputfile, outputdir, flavor, name, postprocess)
+
+Generate `README.md` from `examples/README.jl` using `Literate.markdown`.
+"""
 function make_readme!(
         pkgroot::AbstractString;
         inputfile = joinpath(pkgroot, "examples", "README.jl"),
@@ -64,6 +69,11 @@ function make_readme!(
     return nothing
 end
 
+"""
+    make_index!(pkgroot::AbstractString; inputfile, outputdir, flavor, name, postprocess)
+
+Generate `docs/src/index.md` from `examples/README.jl` using `Literate.markdown`.
+"""
 function make_index!(
         pkgroot::AbstractString;
         inputfile = joinpath(pkgroot, "examples", "README.jl"),
