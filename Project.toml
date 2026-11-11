@@ -19,7 +19,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
 JuliaFormatter = "2.3"
-JuliaSyntax = "0.4.10"
+JuliaSyntax = "0.4.10, 1"
 Literate = "2.21"
 Logging = "1.10"
 OrderedCollections = "1.8.1, 2"
